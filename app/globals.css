@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Syne", sans-serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-green-50:  #E8F5EE;
+  --color-green-100: #C6E8D5;
+  --color-green-200: #90D0AE;
+  --color-green-300: #7ED8A8;
+  --color-green-500: #2E7D52;
+  --color-green-600: #1A6640;
+  --color-green-700: #0F5132;
+  --color-green-800: #0A3D25;
+
+  --color-amber-50:  #FEF9E7;
+  --color-amber-200: #F9E48A;
+  --color-amber-400: #D4AC0D;
+  --color-amber-600: #947A08;
+
+  --color-red-50:  #FDEDEC;
+  --color-red-200: #F5A09E;
+  --color-red-500: #C0392B;
+  --color-red-600: #922B21;
+
+  --color-slate-50:  #F7F7F5;
+  --color-slate-100: #EBEBEA;
+  --color-slate-300: #AEADA9;
+  --color-slate-400: #888782;
+  --color-slate-500: #66635D;
+  --color-slate-600: #4E4B46;
+  --color-slate-800: #272521;
+  --color-slate-900: #1A1A2E;
+
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+
+  --font-size-2xs: 10px;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+}
+
+/* ── Design tokens (CSS vars globais) ─────────────────────────────────── */
+:root {
+  --ts-green-primary: #0F5132;
+  --ts-green-mid:     #2E7D52;
+  --ts-green-accent:  #7ED8A8;
+  --ts-green-light:   #E8F5EE;
+  --ts-safe:          #2E7D52;
+  --ts-warning:       #D4AC0D;
+  --ts-danger:        #E74C3C;
+  --ts-bg:            #F7F7F5;
+  --ts-surface:       #FFFFFF;
+  --ts-border:        rgba(0,0,0,0.08);
+  --ts-text-primary:  #1A1A2E;
+  --ts-text-secondary:#4E4B46;
+  --ts-text-muted:    #888782;
+  --ts-transition:    200ms cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  background-color: var(--ts-bg);
+  color: var(--ts-text-primary);
+  font-family: "DM Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── Utilitários TerraSat ─────────────────────────────────────────────── */
+.ts-card {
+  background: white;
+  border-radius: 12px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-card);
+}
+
+.ts-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 200ms;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+}
+.ts-btn-primary {
+  background: #0F5132;
+  color: white;
+  border: none;
+}
+.ts-btn-primary:hover { background: #0A3D25; }
+.ts-btn-primary:active { transform: scale(0.98); }
+
+.ts-btn-outline {
+  background: transparent;
+  color: #0F5132;
+  border: 1.5px solid #0F5132;
+}
+.ts-btn-outline:hover { background: #E8F5EE; }
+
+.ts-btn-ghost {
+  background: transparent;
+  color: #66635D;
+  border: 0.5px solid rgba(0,0,0,0.10);
+}
+.ts-btn-ghost:hover { background: #F7F7F5; }
+
+.ts-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+}
+.ts-alert-safe    { background: #E8F5EE; color: #0A3D25; border-left: 3px solid #2E7D52; }
+.ts-alert-warning { background: #FEF9E7; color: #6D4C00; border-left: 3px solid #D4AC0D; }
+.ts-alert-danger  { background: #FDEDEC; color: #7B1A14; border-left: 3px solid #E74C3C; }
+
+.ts-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #888782;
+}
+
+.ts-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: white;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #272521;
+  transition: all 200ms;
+  outline: none;
+}
+.ts-input:focus { border-color: #0F5132; box-shadow: 0 0 0 3px rgba(15,81,50,0.12); }
+.ts-input::placeholder { color: #AEADA9; }
+
+.ts-skeleton { background: #EBEBEA; border-radius: 6px; animation: pulse 1.5s ease-in-out infinite; }
+
+/* ── Leaflet ──────────────────────────────────────────────────────────── */
+.leaflet-container { font-family: "DM Sans", sans-serif; background: #E8F5EE; }
+.leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: var(--shadow-md) !important; }
+.leaflet-popup-content { margin: 0 !important; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 99px; }
+
+/* ── Animations ──────────────────────────────────────────────────────── */
+@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes pulse   { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }
+
+.animate-fade-in  { animation: fadeIn  0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.4s ease-out; }
