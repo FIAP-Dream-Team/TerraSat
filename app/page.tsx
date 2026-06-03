@@ -89,8 +89,8 @@ export default function LandingPage() {
               <div className="relative rounded-2xl overflow-hidden shadow-2xl"
                 style={{ aspectRatio: "4/3" }}>
                 <img
-                  src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=700&q=80"
-                  alt="Vista aérea de lavoura brasileira"
+                  src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=700&q=80"
+                  alt="Vista aérea de pivôs de irrigação"
                   className="w-full h-full object-cover"
                 />
                 {/* Overlay sutil verde */}
