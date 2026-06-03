@@ -166,6 +166,35 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 99px; }
 
+/* ── Hero (landing) ──────────────────────────────────────────────────── */
+.hero-section {
+  background-color: #ffffff;
+}
+.hero-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(15,81,50,0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+/* ── Feature cards (landing) ─────────────────────────────────────────── */
+.feature-card {
+  border-bottom: 3px solid transparent;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  border-bottom-color: #95daba;
+}
+.feature-card:hover h3 {
+  color: #0f5132;
+}
+.feature-card:hover div:first-child {
+  background-color: #083a23 !important;
+}
+
 /* ── Animations ──────────────────────────────────────────────────────── */
 @keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }

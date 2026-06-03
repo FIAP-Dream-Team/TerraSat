@@ -1,282 +1,180 @@
-"use client"
-import { useState, useCallback, useRef } from "react"
-import dynamic from "next/dynamic"
-import {
-  Search, MapPin, Loader2, Satellite, AlertTriangle,
-  CheckCircle, Thermometer, Droplets, Wind, Flame,
-} from "lucide-react"
-import type { Municipio, ScoreRisco, DadosClima } from "@/lib/types"
-import { scoreLabel, scoreBg, ndviLabel, ndviCor, formatDataCurta } from "@/lib/utils"
-import { geocodarMunicipio } from "@/lib/apis/geocoding"
-import type { Marcador } from "@/components/map/MapaInterativo"
+import Link from "next/link"
+import HomeDashboard from "@/components/HomeDashboard"
+import { Map, BarChart3, Bell, Satellite, Shield, Zap } from "lucide-react"
 
-const MapaInterativo = dynamic(
-  () => import("@/components/map/MapaInterativo"),
+const features = [
   {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-full bg-green-50 flex items-center justify-center">
-        <Satellite className="w-10 h-10 text-green-200 animate-pulse" />
-      </div>
-    ),
-  }
-)
+    icon: Map,
+    title: "Mapa NDVI Nacional",
+    desc: "Visualize a saúde da vegetação em todos os municípios do Brasil.",
+    href: "/mapa",
+  },
+  {
+    icon: BarChart3,
+    title: "Score de Risco",
+    desc: "Número de 0 a 100 calculado semanalmente — simples de entender.",
+    href: "/dashboard",
+  },
+  {
+    icon: Bell,
+    title: "Alertas Automáticos",
+    desc: "Seca, calor, queimada — receba avisos em linguagem clara.",
+    href: "/alertas",
+  },
+]
 
-type ScoreComClima = ScoreRisco & { clima?: DadosClima }
-
-export default function Home() {
-  const [query, setQuery] = useState("")
-  const [municipios, setMunicipios] = useState<Municipio[]>([])
-  const [buscando, setBuscando] = useState(false)
-  const [carregando, setCarregando] = useState(false)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [score, setScore] = useState<ScoreComClima | null>(null)
-  const [marcadores, setMarcadores] = useState<Marcador[]>([])
-  const [centro, setCentro] = useState<[number, number] | undefined>(undefined)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const buscar = useCallback((q: string) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (q.length < 2) { setMunicipios([]); setShowDropdown(false); return }
-    debounceRef.current = setTimeout(async () => {
-      setBuscando(true)
-      try {
-        const res = await fetch(`/api/municipios?q=${encodeURIComponent(q)}`)
-        const json = await res.json()
-        if (json.sucesso) { setMunicipios(json.data); setShowDropdown(true) }
-      } finally {
-        setBuscando(false)
-      }
-    }, 300)
-  }, [])
-
-  const selecionar = async (m: Municipio) => {
-    setShowDropdown(false)
-    setQuery(`${m.nome} — ${m.uf}`)
-    setCarregando(true)
-    setScore(null)
-
-    let { lat, lng } = m
-    if (!lat || !lng) {
-      const coords = await geocodarMunicipio(m.nome, m.uf)
-      if (coords) { lat = coords.lat; lng = coords.lng }
-    }
-
-    if (!lat || !lng) {
-      setCarregando(false)
-      return
-    }
-
-    try {
-      const params = new URLSearchParams({
-        lat: String(lat), lng: String(lng),
-        id: String(m.id), nome: m.nome, uf: m.uf,
-      })
-      const res = await fetch(`/api/score?${params}`)
-      const json = await res.json()
-      if (json.sucesso) {
-        setScore(json.data)
-        const nivel = json.data.nivel
-        setMarcadores([{ lat, lng, nome: m.nome, uf: m.uf, score: json.data.score, nivel }])
-        setCentro([lat, lng])
-      }
-    } finally {
-      setCarregando(false)
-    }
-  }
-
-  const nivelCor = score?.nivel === "danger" ? "#E74C3C" : score?.nivel === "warning" ? "#D4AC0D" : "#2E7D52"
-
+export default function LandingPage() {
   return (
-    <div className="flex" style={{ height: "calc(100vh - 56px)" }}>
-      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      <aside className="w-80 flex-shrink-0 bg-white border-r border-black/[0.07] flex flex-col overflow-hidden">
-        {/* Busca */}
-        <div className="p-4 border-b border-black/[0.06]">
-          <p className="ts-label mb-2">Buscar município</p>
-          <div className="relative">
-            <input
-              className="ts-input pr-9"
-              placeholder="Ex: Salgueiro, PE"
-              value={query}
-              autoComplete="off"
-              onChange={e => { setQuery(e.target.value); buscar(e.target.value) }}
-              onFocus={() => municipios.length > 0 && setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              {buscando
-                ? <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
-                : <Search className="w-4 h-4 text-slate-400" />}
-            </div>
+    <>
+      {/* Hero */}
+      <section className="hero-section relative overflow-hidden bg-white">
+        <div className="hero-dots" aria-hidden="true" />
 
-            {showDropdown && municipios.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-black/[0.09] rounded-xl shadow-lg z-50 overflow-hidden">
-                {municipios.map(m => (
-                  <button
-                    key={m.id}
-                    onMouseDown={() => selecionar(m)}
-                    className="w-full text-left px-3 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-2 transition-colors"
-                  >
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                    <span className="font-medium text-slate-800">{m.nome}</span>
-                    <span className="text-xs text-slate-400 ml-auto">{m.uf}</span>
-                  </button>
+        <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-24">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+            {/* Coluna esquerda — texto */}
+            <div>
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-xs font-semibold mb-8"
+                style={{ backgroundColor: "#147b4b" }}
+              >
+                <Satellite className="w-3 h-3" />
+                Dados de satélite · Global Solution 2026
+              </span>
+
+              <h1
+                className="font-display font-extrabold leading-[1.08] mb-6"
+                style={{ fontSize: "52px", color: "#0a0a0a" }}
+              >
+                O co-piloto do{" "}
+                <span style={{ color: "#0f5132" }}>agricultor<br />brasileiro</span>
+              </h1>
+
+              <p className="leading-relaxed mb-10 max-w-md"
+                style={{ fontSize: "18px", color: "#525252" }}>
+                Monitoramento agrícola inteligente por satélite. Veja o campo do espaço e receba alertas simples — sem jargão técnico.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 mb-10">
+                <Link href="/mapa"
+                  className="ts-btn px-6 py-3 text-base font-semibold text-white rounded-lg"
+                  style={{ backgroundColor: "#083a23" }}>
+                  Explorar mapa do Brasil
+                </Link>
+                <Link href="/propriedades"
+                  className="ts-btn px-6 py-3 text-base font-medium rounded-lg border"
+                  style={{ backgroundColor: "#ffffff", color: "#0a0a0a", borderColor: "rgba(0,0,0,0.12)" }}>
+                  Cadastrar minha propriedade
+                </Link>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6">
+                {[
+                  { icon: Shield,    text: "Sem cadastro" },
+                  { icon: Zap,       text: "Gratuito" },
+                  { icon: Satellite, text: "Funciona em 3G" },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5" style={{ color: "#147b4b" }} />
+                    <span className="text-sm" style={{ color: "#737373" }}>{text}</span>
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Conteúdo */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {carregando && (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="ts-skeleton rounded-xl h-20" />
-              ))}
             </div>
-          )}
 
-          {!carregando && !score && (
-            <div className="text-center py-16 text-slate-400 animate-fade-in">
-              <Satellite className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p className="text-sm leading-relaxed">
-                Digite um município para ver<br />o score de risco agrícola
-              </p>
-            </div>
-          )}
-
-          {!carregando && score && (
-            <div className="animate-slide-up space-y-4">
-              {/* Score principal */}
-              <div className={`ts-card p-4 border ${scoreBg(score.nivel)}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="ts-label mb-1">Score de risco</p>
-                    <p className="font-display text-5xl font-bold leading-none" style={{ color: nivelCor }}>
-                      {score.score}
-                    </p>
-                  </div>
-                  <span
-                    className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                    style={{ background: `${nivelCor}18`, color: nivelCor }}
-                  >
-                    {scoreLabel(score.nivel)}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{score.recomendacao}</p>
+            {/* Coluna direita — imagem + cards flutuantes */}
+            <div className="relative hidden lg:block">
+              {/* Imagem aérea */}
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl"
+                style={{ aspectRatio: "4/3" }}>
+                <img
+                  src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=700&q=80"
+                  alt="Vista aérea de lavoura brasileira"
+                  className="w-full h-full object-cover"
+                />
+                {/* Overlay sutil verde */}
+                <div className="absolute inset-0"
+                  style={{ background: "linear-gradient(135deg, rgba(15,81,50,0.25) 0%, transparent 60%)" }} />
               </div>
 
-              {/* Clima */}
-              {score.clima && (
-                <div className="ts-card p-4">
-                  <p className="ts-label mb-3">Clima atual</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { icon: Thermometer, label: "Temperatura", value: `${score.clima.temperatura_atual_c}°C` },
-                      { icon: Thermometer, label: "Máxima hoje", value: `${score.clima.temperatura_maxima_c}°C` },
-                      { icon: Droplets, label: "Umidade", value: `${score.clima.umidade_percent}%` },
-                      { icon: Droplets, label: "Chuva prevista", value: `${score.precipitacao_prevista_mm}mm` },
-                    ].map(({ icon: Icon, label, value }) => (
-                      <div key={label} className="bg-slate-50 rounded-lg p-2.5">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <Icon className="w-3 h-3 text-slate-400" />
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wide font-medium">{label}</p>
-                        </div>
-                        <p className="font-semibold text-slate-800 text-sm">{value}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Previsão 7 dias */}
-                  {score.clima.previsao_7dias?.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-black/[0.05]">
-                      <p className="ts-label mb-2">Próximos 7 dias</p>
-                      <div className="flex gap-1 overflow-x-auto pb-1">
-                        {score.clima.previsao_7dias.slice(0, 7).map((d, i) => (
-                          <div key={i} className="flex-shrink-0 flex flex-col items-center text-center bg-slate-50 rounded-lg p-2 min-w-[48px]">
-                            <p className="text-[10px] text-slate-500 font-medium">{formatDataCurta(d.data)}</p>
-                            <p className="text-xs font-bold text-slate-800 mt-1">{d.temp_max}°</p>
-                            <p className="text-[10px] text-blue-500">{d.precipitacao_mm}mm</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              {/* Card flutuante — Score */}
+              <div className="absolute -left-6 top-8 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3"
+                style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: "#ffc23320" }}>
+                  <BarChart3 className="w-5 h-5" style={{ color: "#db9200" }} />
                 </div>
-              )}
-
-              {/* NDVI */}
-              <div className="ts-card p-4">
-                <p className="ts-label mb-3">Saúde da vegetação (NDVI)</p>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                    style={{ backgroundColor: ndviCor(score.ndvi) }}
-                  >
-                    {score.ndvi.toFixed(2)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800">{ndviLabel(score.ndvi)}</p>
-                    <p className="text-xs text-slate-500">{score.ndvi_status}</p>
-                  </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide font-medium" style={{ color: "#737373" }}>Score de risco</p>
+                  <p className="font-display font-bold text-xl leading-none" style={{ color: "#db9200" }}>62</p>
+                  <p className="text-xs font-medium" style={{ color: "#db9200" }}>Atenção</p>
                 </div>
               </div>
 
-              {/* Focos de calor */}
-              {score.focos_calor_proximos > 0 && (
-                <div className="ts-card p-3 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0">
-                    <Flame className="w-4 h-4 text-orange-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {score.focos_calor_proximos} foco(s) de calor
-                    </p>
-                    <p className="text-xs text-slate-500">Detectados em raio de 50 km</p>
-                  </div>
+              {/* Card flutuante — Alerta */}
+              <div className="absolute -right-4 bottom-12 bg-white rounded-xl shadow-lg px-4 py-3 max-w-[200px]"
+                style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#db9200" }} />
+                  <p className="text-xs font-semibold" style={{ color: "#0a0a0a" }}>Alerta ativo</p>
                 </div>
-              )}
+                <p className="text-xs leading-relaxed" style={{ color: "#525252" }}>
+                  Seca prevista nos próximos 10 dias na sua região.
+                </p>
+              </div>
 
-              {/* Alertas */}
-              {score.alertas.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="ts-label">Alertas ativos ({score.alertas.length})</p>
-                  {score.alertas.map(a => (
-                    <div
-                      key={a.id}
-                      className={`ts-alert ts-alert-${a.nivel === "danger" ? "danger" : a.nivel === "warning" ? "warning" : "safe"}`}
-                    >
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-xs">{a.titulo}</p>
-                        <p className="text-xs mt-0.5 opacity-80 leading-snug">{a.recomendacao}</p>
-                      </div>
-                    </div>
-                  ))}
+              {/* Card flutuante — NDVI */}
+              <div className="absolute left-4 -bottom-4 bg-white rounded-xl shadow-lg px-4 py-3 flex items-center gap-3"
+                style={{ border: "1px solid rgba(0,0,0,0.08)" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: "#e8f5ee" }}>
+                  <Satellite className="w-4 h-4" style={{ color: "#0f5132" }} />
                 </div>
-              ) : (
-                <div className="ts-alert ts-alert-safe">
-                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                  <p className="text-xs font-medium">Nenhum alerta ativo para este município</p>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide font-medium" style={{ color: "#737373" }}>NDVI · Sentinel-2</p>
+                  <p className="text-sm font-bold" style={{ color: "#0f5132" }}>0.61 — Saudável</p>
                 </div>
-              )}
+              </div>
             </div>
-          )}
-        </div>
-      </aside>
 
-      {/* ── Mapa ─────────────────────────────────────────────────────────── */}
-      <div className="flex-1 relative overflow-hidden">
-        <MapaInterativo marcadores={marcadores} centro={centro} />
-        {!centro && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-full px-5 py-2 text-sm text-slate-600 shadow-md pointer-events-none select-none flex items-center gap-2">
-            <Satellite className="w-4 h-4 text-green-600" />
-            Busque um município para visualizar no mapa
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="como-funciona" style={{ backgroundColor: "#0f5132" }}>
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {features.map(({ icon: Icon, title, desc, href }) => (
+              <Link
+                key={title}
+                href={href}
+                className="feature-card block rounded-xl p-6"
+                style={{ backgroundColor: "#fafafa" }}
+              >
+                {/* Ícone */}
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: "#0f5132" }}
+                >
+                  <Icon className="w-4 h-4" style={{ color: "#95daba" }} />
+                </div>
+
+                <h3 className="font-display font-bold text-lg mb-2" style={{ color: "#0a0a0a" }}>
+                  {title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "#525252" }}>
+                  {desc}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard interativo */}
+      <HomeDashboard />
+    </>
   )
 }

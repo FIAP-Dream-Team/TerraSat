@@ -2,19 +2,25 @@
 import { useState, useCallback, useRef } from "react"
 import {
   Search, MapPin, Loader2, AlertTriangle, CheckCircle,
-  Droplets, Thermometer, Flame, Wind, Leaf,
+  Droplets, Thermometer, Flame, Wind, Leaf, Bell,
 } from "lucide-react"
 import type { Municipio, Alerta, TipoAlerta } from "@/lib/types"
 import { geocodarMunicipio } from "@/lib/apis/geocoding"
 import { formatData } from "@/lib/utils"
 
-const TIPO_INFO: Record<TipoAlerta, { label: string; icon: React.ReactNode; cor: string }> = {
-  seca:           { label: "Seca",            icon: <Droplets className="w-4 h-4" />,    cor: "#D4AC0D" },
-  excesso_hidrico:{ label: "Excesso hídrico", icon: <Droplets className="w-4 h-4" />,    cor: "#3B82F6" },
-  calor_extremo:  { label: "Calor extremo",   icon: <Thermometer className="w-4 h-4" />, cor: "#E74C3C" },
-  geada:          { label: "Geada",           icon: <Wind className="w-4 h-4" />,        cor: "#60A5FA" },
-  queimada:       { label: "Queimada",        icon: <Flame className="w-4 h-4" />,       cor: "#F97316" },
-  queda_ndvi:     { label: "Queda de NDVI",   icon: <Leaf className="w-4 h-4" />,        cor: "#6B7280" },
+const TIPO_INFO: Record<TipoAlerta, { label: string; icon: React.ReactNode }> = {
+  seca:           { label: "Seca",            icon: <Droplets className="w-4 h-4" /> },
+  excesso_hidrico:{ label: "Excesso hídrico", icon: <Droplets className="w-4 h-4" /> },
+  calor_extremo:  { label: "Calor extremo",   icon: <Thermometer className="w-4 h-4" /> },
+  geada:          { label: "Geada",           icon: <Wind className="w-4 h-4" /> },
+  queimada:       { label: "Queimada",        icon: <Flame className="w-4 h-4" /> },
+  queda_ndvi:     { label: "Queda de NDVI",   icon: <Leaf className="w-4 h-4" /> },
+}
+
+const NIVEL_STYLE = {
+  danger:  { bg: "#db0000", dark: "#840000", label: "Risco alto" },
+  warning: { bg: "#ffc233", dark: "#db9200", label: "Atenção" },
+  safe:    { bg: "#083a23", dark: "#051f13", label: "Normal" },
 }
 
 const FILTROS: { value: TipoAlerta | "todos"; label: string }[] = [
@@ -35,6 +41,7 @@ export default function Alertas() {
   const [alertas, setAlertas] = useState<Alerta[]>([])
   const [municipioAtual, setMunicipioAtual] = useState<string>("")
   const [filtro, setFiltro] = useState<TipoAlerta | "todos">("todos")
+  const [scoreAtual, setScoreAtual] = useState<number | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const buscar = useCallback((q: string) => {
@@ -73,7 +80,10 @@ export default function Alertas() {
       })
       const res = await fetch(`/api/score?${params}`)
       const json = await res.json()
-      if (json.sucesso) setAlertas(json.data.alertas ?? [])
+      if (json.sucesso) {
+        setAlertas(json.data.alertas ?? [])
+        setScoreAtual(json.data.score)
+      }
     } finally {
       setCarregando(false)
     }
@@ -87,8 +97,10 @@ export default function Alertas() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-display text-2xl font-bold text-green-700">Alertas</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Alertas automáticos gerados por satélite e dados climáticos</p>
+        <h1 className="font-display text-2xl font-bold" style={{ color: "#0a0a0a" }}>Alertas</h1>
+        <p className="text-sm mt-0.5" style={{ color: "#737373" }}>
+          Alertas automáticos gerados por satélite e dados climáticos
+        </p>
       </div>
 
       {/* Busca */}
@@ -118,8 +130,8 @@ export default function Alertas() {
                   className="w-full text-left px-3 py-2.5 text-sm hover:bg-slate-50 flex items-center gap-2"
                 >
                   <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                  <span className="font-medium text-slate-800">{m.nome}</span>
-                  <span className="text-xs text-slate-400 ml-auto">{m.uf}</span>
+                  <span className="font-medium" style={{ color: "#0a0a0a" }}>{m.nome}</span>
+                  <span className="text-xs ml-auto" style={{ color: "#737373" }}>{m.uf}</span>
                 </button>
               ))}
             </div>
@@ -134,11 +146,11 @@ export default function Alertas() {
             <button
               key={f.value}
               onClick={() => setFiltro(f.value)}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors border ${
-                filtro === f.value
-                  ? "bg-green-700 text-white border-green-700"
-                  : "bg-white text-slate-600 border-black/[0.08] hover:bg-slate-50"
-              }`}
+              className="text-sm px-3 py-1.5 rounded-full font-medium transition-colors border"
+              style={filtro === f.value
+                ? { backgroundColor: "#083a23", color: "#fafafa", borderColor: "#083a23" }
+                : { backgroundColor: "#fafafa", color: "#525252", borderColor: "rgba(0,0,0,0.1)" }
+              }
             >
               {f.label}
               {f.value !== "todos" && (
@@ -154,15 +166,15 @@ export default function Alertas() {
       {/* Loading */}
       {carregando && (
         <div className="space-y-3">
-          {[1, 2, 3].map(i => <div key={i} className="ts-skeleton rounded-xl h-24" />)}
+          {[1, 2, 3].map(i => <div key={i} className="ts-skeleton rounded-xl h-40" />)}
         </div>
       )}
 
       {/* Vazio inicial */}
       {!carregando && alertas.length === 0 && !municipioAtual && (
-        <div className="ts-card p-16 text-center text-slate-400">
+        <div className="ts-card p-16 text-center" style={{ color: "#737373" }}>
           <AlertTriangle className="w-12 h-12 mx-auto mb-4 opacity-20" />
-          <p className="text-base font-medium">Nenhum município selecionado</p>
+          <p className="text-base font-medium" style={{ color: "#525252" }}>Nenhum município selecionado</p>
           <p className="text-sm mt-1">Busque acima para ver os alertas</p>
         </div>
       )}
@@ -170,11 +182,12 @@ export default function Alertas() {
       {/* Sem alertas */}
       {!carregando && municipioAtual && alertas.length === 0 && (
         <div className="ts-card p-12 text-center">
-          <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-            <CheckCircle className="w-7 h-7 text-green-500" />
+          <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+            style={{ backgroundColor: "#e8f5ee" }}>
+            <CheckCircle className="w-7 h-7" style={{ color: "#0f5132" }} />
           </div>
-          <p className="font-semibold text-slate-700">Nenhum alerta ativo</p>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="font-semibold" style={{ color: "#0a0a0a" }}>Nenhum alerta ativo</p>
+          <p className="text-sm mt-1" style={{ color: "#737373" }}>
             {municipioAtual} está com condições favoráveis no momento.
           </p>
         </div>
@@ -182,54 +195,93 @@ export default function Alertas() {
 
       {/* Lista de alertas */}
       {!carregando && alertasFiltrados.length > 0 && (
-        <div className="space-y-3 animate-slide-up">
-          <p className="text-sm text-slate-500">
-            {alertasFiltrados.length} alerta(s) em <strong className="text-slate-700">{municipioAtual}</strong>
+        <div className="space-y-4 animate-slide-up">
+          <p className="text-sm" style={{ color: "#737373" }}>
+            {alertasFiltrados.length} alerta(s) em{" "}
+            <strong style={{ color: "#0a0a0a" }}>{municipioAtual}</strong>
+            {scoreAtual !== null && (
+              <span> · Score de Risco: <strong style={{ color: "#0a0a0a" }}>{scoreAtual}</strong></span>
+            )}
           </p>
+
           {alertasFiltrados.map(a => {
             const info = TIPO_INFO[a.tipo]
+            const nivel = NIVEL_STYLE[a.nivel] ?? NIVEL_STYLE.safe
+            const isWarning = a.nivel === "warning"
+            const isDanger  = a.nivel === "danger"
+
             return (
-              <div
-                key={a.id}
-                className={`ts-card p-5 border-l-4 ${
-                  a.nivel === "danger" ? "border-l-red-500" :
-                  a.nivel === "warning" ? "border-l-amber-400" :
-                  "border-l-green-500"
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: `${info.cor}18`, color: info.cor }}
-                  >
+              <div key={a.id} className="rounded-xl overflow-hidden border"
+                style={{ backgroundColor: "#fafafa", borderColor: "rgba(0,0,0,0.08)" }}>
+
+                {/* Cabeçalho colorido */}
+                <div className="flex items-center justify-between px-5 py-3"
+                  style={{ backgroundColor: nivel.bg }}>
+                  <div className="flex items-center gap-2 text-white">
                     {info.icon}
+                    <span className="text-sm font-semibold">{info.label}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-semibold text-slate-800">{a.titulo}</h3>
-                      <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
-                        style={{ background: `${info.cor}18`, color: info.cor }}
-                      >
-                        {info.label}
-                      </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
-                        a.nivel === "danger"  ? "bg-red-100 text-red-700" :
-                        a.nivel === "warning" ? "bg-amber-100 text-amber-700" :
-                        "bg-green-100 text-green-700"
-                      }`}>
-                        {a.nivel === "danger" ? "Emergência" : a.nivel === "warning" ? "Atenção" : "Info"}
-                      </span>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                    style={{ backgroundColor: nivel.dark }}>
+                    {nivel.label}
+                    {scoreAtual !== null && ` (Score ${scoreAtual})`}
+                  </span>
+                </div>
+
+                {/* Conteúdo */}
+                <div className="px-5 py-4 space-y-4">
+                  <h3 className="font-semibold text-base" style={{ color: "#0a0a0a" }}>
+                    {a.titulo}
+                  </h3>
+
+                  {/* Divisor */}
+                  <div className="h-px" style={{ backgroundColor: "#e5e5e5" }} />
+
+                  {/* O que foi detectado */}
+                  <div>
+                    <p className="text-sm font-semibold mb-2" style={{ color: "#0a0a0a" }}>
+                      O que foi detectado
+                    </p>
+                    <div className="space-y-1.5">
+                      {a.descricao.split(".").filter(s => s.trim().length > 4).map((s, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="font-bold mt-0.5 flex-shrink-0"
+                            style={{ color: isDanger ? "#840000" : isWarning ? "#db9200" : "#083a23" }}>•</span>
+                          <p className="text-sm leading-relaxed" style={{ color: "#0a0a0a" }}>
+                            {s.trim()}.
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">{a.descricao}</p>
-                    <div className="mt-3 p-3 bg-slate-50 rounded-lg">
-                      <p className="text-xs font-semibold text-slate-700 mb-1">Recomendação</p>
-                      <p className="text-xs text-slate-600 leading-relaxed">{a.recomendacao}</p>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-2">
-                      Emitido em {formatData(a.criado_em)} · Válido até {formatData(a.valido_ate)}
+                  </div>
+
+                  {/* O que pode acontecer */}
+                  <div>
+                    <p className="text-sm font-semibold mb-1" style={{ color: "#0a0a0a" }}>
+                      O que pode acontecer
+                    </p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#525252" }}>
+                      {a.recomendacao}
                     </p>
                   </div>
+
+                  {/* CTA */}
+                  <div className="pt-1">
+                    <button
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: "#083a23" }}
+                    >
+                      <Bell className="w-4 h-4" />
+                      Me avisa quando mudar
+                    </button>
+                    <p className="text-xs text-center mt-2" style={{ color: "#737373" }}>
+                      Receba notificação por e-mail ou WhatsApp quando o score mudar
+                    </p>
+                  </div>
+
+                  <p className="text-xs" style={{ color: "#a3a3a3" }}>
+                    Emitido em {formatData(a.criado_em)} · Válido até {formatData(a.valido_ate)}
+                  </p>
                 </div>
               </div>
             )
