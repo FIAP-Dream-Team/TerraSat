@@ -18,7 +18,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/[0.07] shadow-sm" style={{ backgroundColor: "#fafafa" }}>
+    <header className="sticky top-0 z-[999] border-b border-black/[0.07] shadow-sm" style={{ backgroundColor: "#fafafa" }}>
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#083a23" }}>
