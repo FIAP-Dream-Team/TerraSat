@@ -1,6 +1,6 @@
 import Link from "next/link"
 import HomeDashboard from "@/components/HomeDashboard"
-import { Map, BarChart3, Bell, Satellite, Shield, Zap } from "lucide-react"
+import { Map, BarChart3, Bell, Satellite, Shield, Zap, Database, Globe, GitMerge, Users } from "lucide-react"
 
 const features = [
   {
@@ -169,6 +169,138 @@ export default function LandingPage() {
                 </p>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sobre o TerraSat */}
+      <section className="bg-white py-20" id="sobre">
+        <div className="max-w-7xl mx-auto px-6">
+
+          {/* Topo da seção */}
+          <div className="max-w-2xl mb-16">
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#147b4b" }}>
+              Sobre o projeto
+            </p>
+            <h2 className="font-display font-extrabold mb-4" style={{ fontSize: "36px", color: "#0a0a0a" }}>
+              O problema não é falta de dado.<br />
+              <span style={{ color: "#0f5132" }}>É falta de dado certo, no lugar certo.</span>
+            </h2>
+            <p className="text-lg leading-relaxed" style={{ color: "#525252" }}>
+              O Brasil tem mais de 3.800 municípios com economia predominantemente agrícola.
+              Ainda assim, a maioria dos produtores toma decisões críticas baseadas em experiência própria
+              e na previsão do tempo básica do celular.
+            </p>
+          </div>
+
+          {/* Grid de conteúdo */}
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+
+            {/* Esquerda — o que o TerraSat faz */}
+            <div className="space-y-6">
+              <div className="rounded-2xl p-6 space-y-4" style={{ backgroundColor: "#f5f5f5" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#083a23" }}>
+                    <GitMerge className="w-4 h-4" style={{ color: "#95daba" }} />
+                  </div>
+                  <h3 className="font-display font-bold text-lg" style={{ color: "#0a0a0a" }}>
+                    A camada de integração
+                  </h3>
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: "#525252" }}>
+                  O TerraSat não inventa dado nenhum. Conecta fontes públicas já existentes — satélites, clima,
+                  IBGE, INPE — agrega, interpreta e entrega o resultado em linguagem clara.
+                  A inovação está na camada de integração e na experiência do usuário.
+                </p>
+              </div>
+
+              <div className="rounded-2xl p-6 space-y-4" style={{ backgroundColor: "#f5f5f5" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#083a23" }}>
+                    <Users className="w-4 h-4" style={{ color: "#95daba" }} />
+                  </div>
+                  <h3 className="font-display font-bold text-lg" style={{ color: "#0a0a0a" }}>
+                    Três perfis, uma plataforma
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { nome: "João", desc: "Agricultor familiar que precisa saber se pode plantar essa semana." },
+                    { nome: "Dona Márcia", desc: "Técnica agrícola que monitora 80 famílias em 6 municípios." },
+                    { nome: "Carlos", desc: "Gestor de cooperativa que precisa de relatórios para crédito rural." },
+                  ].map(({ nome, desc }) => (
+                    <div key={nome} className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: "#e8f5ee" }}>
+                        <span className="text-[10px] font-bold" style={{ color: "#0f5132" }}>
+                          {nome[0]}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-relaxed" style={{ color: "#525252" }}>
+                        <strong style={{ color: "#0a0a0a" }}>{nome}</strong> — {desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Direita — fontes + números */}
+            <div className="space-y-6">
+
+              {/* Números */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { valor: "5.570", label: "municípios monitorados", cor: "#0f5132" },
+                  { valor: "25%",   label: "do PIB nacional é agronegócio", cor: "#0f5132" },
+                  { valor: "5 dias", label: "frequência do Sentinel-2", cor: "#147b4b" },
+                  { valor: "0",     label: "cadastro para explorar", cor: "#147b4b" },
+                ].map(({ valor, label, cor }) => (
+                  <div key={label} className="rounded-2xl p-5"
+                    style={{ border: "1px solid rgba(0,0,0,0.08)", backgroundColor: "#fafafa" }}>
+                    <p className="font-display font-extrabold text-3xl leading-none mb-1" style={{ color: cor }}>
+                      {valor}
+                    </p>
+                    <p className="text-xs leading-snug" style={{ color: "#737373" }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Fontes de dados */}
+              <div className="rounded-2xl p-6" style={{ border: "1px solid rgba(0,0,0,0.08)", backgroundColor: "#fafafa" }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Database className="w-4 h-4" style={{ color: "#0f5132" }} />
+                  <p className="text-sm font-semibold" style={{ color: "#0a0a0a" }}>Fontes de dados integradas</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {["Sentinel-2 · ESA", "NASA FIRMS", "Open-Meteo", "IBGE API", "BDQueimadas · INPE", "ANA Hidroweb", "ZARC · MAPA", "MapBiomas"].map(fonte => (
+                    <span key={fonte}
+                      className="text-xs px-2.5 py-1 rounded-full font-medium"
+                      style={{ backgroundColor: "#e8f5ee", color: "#0f5132" }}>
+                      {fonte}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* ODS */}
+              <div className="rounded-2xl p-5 flex items-center gap-4"
+                style={{ backgroundColor: "#0f5132" }}>
+                <Globe className="w-8 h-8 text-white flex-shrink-0 opacity-80" />
+                <div>
+                  <p className="text-xs font-semibold text-white mb-1">Alinhado aos ODS da ONU</p>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {["ODS 2", "ODS 8", "ODS 9", "ODS 11", "ODS 13"].map(o => (
+                      <span key={o} className="text-[10px] font-bold px-2 py-0.5 rounded"
+                        style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "#95daba" }}>
+                        {o}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </section>
